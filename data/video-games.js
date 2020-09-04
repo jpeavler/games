@@ -13,18 +13,13 @@ const colName = 'video_games';
 const getGames = () => {
     const myPromise = new Promise((resolve, reject) =>{
         MongoClient.connect(url, settings, function(err, client) {
-            if(err){
-                reject(err);
-            }else{
-                console.log("Connected to DB server for READ");
-                const db = client.db(dbName);
-                const collection = db.collection(colName);
+            if(err){ reject(err); }
+            else {
+                const collection = client.db(dbName).collection(colName);
                 collection.find({}).toArray(function(err, docs) {
-                    if(err){
-                        reject(err);
-                    } else {
-                        console.log("Found the following Video Games")
-                        console.log(docs);
+                    if(err){ reject(err); }
+                    else {
+                        console.log("Found Video Game Collection");
                         resolve(docs);
                         client.close();
                     }
@@ -34,3 +29,31 @@ const getGames = () => {
     });
     return myPromise;
 };
+getGameById = (id) => {
+    const myPromise = new Promise((resolve, reject) => {
+        MongoClient.connect(url, settings, async function(err, client) {
+            if(err) { reject(err); }
+            else {
+                const collection = client.db(dbName).collection(colName);
+                try {
+                    const _id = new ObjectID(id);
+                    const result = await collection.findOne({_id});
+                    if(result) { resolve(result); }
+                    else { reject({error: "ID not found in database"}); }
+                    client.close();
+                }catch(err) { reject({error: "ID must be in ObjectID format"}); }
+            }
+        });
+    });
+    return myPromise;
+};
+
+module.exports = {
+    getGames,
+    getGameById,
+    // getGameByTitle,
+    // addGame,
+    // updateGame,
+    // updateGameValues,
+    // deleteGame
+}
